@@ -1,20 +1,9 @@
-"""
-Nassau Candy Distributor — Product Line Profitability & Margin Performance Dashboard
-Run with:  streamlit run app.py
-
-Expects Nassau_Candy_Distributor.csv in the same folder as this script.
-If it isn't found, the app shows a file uploader instead.
-"""
 import os
 import pandas as pd
 import numpy as np
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-
-# ----------------------------------------------------------------------------
-# PAGE CONFIG
-# ----------------------------------------------------------------------------
 st.set_page_config(
     page_title="Nassau Candy | Profitability & Margin Dashboard",
     page_icon="🍬",
@@ -22,12 +11,6 @@ st.set_page_config(
 )
 
 DATA_FILENAME = "Nassau_Candy_Distributor.csv"
-
-
-# ----------------------------------------------------------------------------
-# DATA LOADING & CLEANING (Step 1 logic, self-contained)
-# ----------------------------------------------------------------------------
-@st.cache_data
 def load_and_clean(file) -> pd.DataFrame:
     df = pd.read_csv(file)
 
@@ -52,25 +35,11 @@ def load_and_clean(file) -> pd.DataFrame:
                             "Division", "Product Name", "Order Date"])
     return df
 
-
-# ----------------------------------------------------------------------------
-# LOAD DATA
-# ----------------------------------------------------------------------------
-if os.path.exists(DATA_FILENAME):
-    raw_df = load_and_clean(DATA_FILENAME)
-else:
-    st.warning(f"'{DATA_FILENAME}' not found next to app.py — upload it below.")
-    uploaded = st.file_uploader("Upload Nassau Candy Distributor CSV", type="csv")
-    if uploaded is None:
-        st.stop()
-    raw_df = load_and_clean(uploaded)
+raw_df=load_and_clean(DATA_FILENAME)
 
 st.title("🍬 Nassau Candy Distributor")
 st.subheader("Product Line Profitability & Margin Performance Dashboard")
 
-# ----------------------------------------------------------------------------
-# SIDEBAR — USER CAPABILITIES / FILTERS
-# ----------------------------------------------------------------------------
 st.sidebar.header("Filters")
 
 min_date, max_date = raw_df["Order Date"].min(), raw_df["Order Date"].max()
@@ -109,9 +78,6 @@ if df.empty:
     st.error("No data matches the current filters. Try widening the date range or filters.")
     st.stop()
 
-# ----------------------------------------------------------------------------
-# CORE METRICS (Step 2 logic)
-# ----------------------------------------------------------------------------
 total_sales = df["Sales"].sum()
 total_profit = df["Gross Profit"].sum()
 total_units = df["Units"].sum()
@@ -147,9 +113,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📈 Profit Concentration (Pareto)",
 ])
 
-# ----------------------------------------------------------------------------
-# TAB 1: PRODUCT PROFITABILITY OVERVIEW
-# ----------------------------------------------------------------------------
 with tab1:
     st.markdown("#### Product-level margin leaderboard")
     st.dataframe(
@@ -181,9 +144,7 @@ with tab1:
         fig.add_vline(x=margin_threshold, line_dash="dash", line_color="red")
         st.plotly_chart(fig, use_container_width=True)
 
-# ----------------------------------------------------------------------------
-# TAB 2: DIVISION PERFORMANCE DASHBOARD
-# ----------------------------------------------------------------------------
+
 with tab2:
     div = df.groupby("Division", as_index=False).agg(
         Total_Sales=("Sales", "sum"),
@@ -221,9 +182,6 @@ with tab2:
                "share (profit-efficient). Negative = underperforming relative to its "
                "revenue footprint.")
 
-# ----------------------------------------------------------------------------
-# TAB 3: COST VS MARGIN DIAGNOSTICS
-# ----------------------------------------------------------------------------
 with tab3:
     fig = px.scatter(
         pm, x="Total_Cost", y="Total_Sales", size="Total_Units",
@@ -248,9 +206,6 @@ with tab3:
             use_container_width=True,
         )
 
-# ----------------------------------------------------------------------------
-# TAB 4: PROFIT CONCENTRATION (PARETO) ANALYSIS
-# ----------------------------------------------------------------------------
 with tab4:
     par = pm.sort_values("Total_Gross_Profit", ascending=False).reset_index(drop=True)
     par["Cum_Profit_Pct"] = par["Total_Gross_Profit"].cumsum() / par["Total_Gross_Profit"].sum() * 100
