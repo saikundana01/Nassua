@@ -11,6 +11,9 @@ st.set_page_config(
 )
 
 DATA_FILENAME = "Nassau_Candy_Distributor.csv"
+
+
+@st.cache_data
 def load_and_clean(file) -> pd.DataFrame:
     df = pd.read_csv(file)
 
@@ -35,10 +38,10 @@ def load_and_clean(file) -> pd.DataFrame:
                             "Division", "Product Name", "Order Date"])
     return df
 
-raw_df=load_and_clean(DATA_FILENAME)
-
+raw_df = load_and_clean(DATA_FILENAME)
 st.title("🍬 Nassau Candy Distributor")
 st.subheader("Product Line Profitability & Margin Performance Dashboard")
+
 
 st.sidebar.header("Filters")
 
@@ -64,7 +67,6 @@ margin_threshold = st.sidebar.slider(
 
 search_term = st.sidebar.text_input("Product search", "")
 
-# Apply filters
 df = raw_df[
     (raw_df["Order Date"] >= start_date)
     & (raw_df["Order Date"] <= end_date)
@@ -97,7 +99,6 @@ pm["Cost_to_Sales_Ratio"] = pm["Total_Cost"] / pm["Total_Sales"]
 pm["At_Risk"] = pm["Gross_Margin_Pct"] < margin_threshold
 pm = pm.sort_values("Total_Gross_Profit", ascending=False)
 
-# Top KPI row
 k1, k2, k3, k4 = st.columns(4)
 k1.metric("Total Sales", f"${total_sales:,.0f}")
 k2.metric("Total Gross Profit", f"${total_profit:,.0f}")
@@ -143,7 +144,6 @@ with tab1:
         )
         fig.add_vline(x=margin_threshold, line_dash="dash", line_color="red")
         st.plotly_chart(fig, use_container_width=True)
-
 
 with tab2:
     div = df.groupby("Division", as_index=False).agg(
