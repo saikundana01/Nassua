@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide",
 )
 
-DATA_FILENAME = "Nassau_Candy_Distributor.csv"
+DATA_FILENAME = "Nassau Candy Distributor.csv"
 
 
 @st.cache_data
